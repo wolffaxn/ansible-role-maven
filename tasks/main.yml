@@ -1,0 +1,11 @@
+---
+- name: Assert platform is supported
+  assert:
+    that:
+      - ansible_os_family in maven_supported_platforms
+
+- name: Include version-specific variables
+  include_vars: "versions/{{ maven_version }}.yml"
+
+# setup / install tasks
+- include: setup.yml
