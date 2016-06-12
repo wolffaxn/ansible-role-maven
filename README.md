@@ -1,4 +1,4 @@
-# Ansible Role for Apache Maven
+# Ansible Role - Apache Maven
 
 Installs Apache Maven for RedHat/CentOS linux servers.
 
