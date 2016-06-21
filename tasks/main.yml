@@ -5,6 +5,16 @@
       - ansible_architecture in ['x86_64']
       - ansible_os_family in ['RedHat']
 
+- name: set os name
+  set_fact:
+    os_name: linux
+  when: ansible_system == 'Linux'
+
+- name: set os architecture
+  set_fact:
+    os_arch: x64
+  when: ansible_architecture == 'x86_64'
+
 - name: include version-specific variables
   include_vars: "versions/{{ maven_version }}.yml"
 
