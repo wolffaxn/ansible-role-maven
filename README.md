@@ -11,8 +11,10 @@ None.
 Available variables are listed below, along with default values:
 
     maven_version: 3.3.9
-    maven_download_dir: /tmp
-    maven_install_dir: /opt
+
+    maven_download_path: /tmp
+    maven_download_cleanup: true
+    maven_install_path: /opt
 
 ## Dependencies
 
@@ -25,13 +27,15 @@ For RHEL / CentOS
 ```yaml
 ---
 - hosts: localhost
+  become: true
+  become_method: sudo
   remote_user: root
   roles:
     - ansible-role-maven
 ```
 ## License
 
-MIT
+Licensed under the MIT License. See the [LICENSE file](LICENSE) for details.
 
 ## Author Information
 

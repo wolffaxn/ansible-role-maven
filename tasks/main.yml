@@ -1,11 +1,65 @@
 ---
-- name: Assert platform is supported
+- name: assert platform is supported
   assert:
     that:
-      - ansible_os_family in maven_supported_platforms
+      - ansible_architecture in ['x86_64']
+      - ansible_os_family in ['RedHat']
 
-- name: Include version-specific variables
+- name: include version-specific variables
   include_vars: "versions/{{ maven_version }}.yml"
 
-# setup / install tasks
-- include: setup.yml
+- name: ensure download directory exists
+  file: path="{{ maven_download_path }}" state=directory
+
+- name: get Maven tarball (tar.gz)
+  get_url:
+    url: "{{ maven_mirror }}/{{ maven_tarball }}"
+    checksum: "{{ maven_redis_checksum }}"
+    dest: "{{ maven_download_path }}/{{ maven_tarball }}"
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+  register: maven_redis_get
+  until: "'OK' in maven_redis_get.msg or 'file already exists' in maven_redis_get.msg"
+  retries: "{{ download_retries }}"
+  delay: "{{ download_delay }}"
+
+- name: ensure installation directory exists
+  file:
+    path: "{{ maven_install_path }}/apache-maven-{{ maven_version }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+
+- name: install Maven tarball (tar.gz)
+  unarchive:
+    src: "{{ maven_download_path }}/{{ maven_tarball }}"
+    dest: "{{ maven_install_path }}"
+    owner: root
+    group: root
+    mode: "go-w"
+    copy: no
+
+- name: create symbolic link
+  file:
+    src: "{{ maven_install_path }}/apache-maven-{{ maven_version }}"
+    dest: "{{ maven_install_path }}/maven"
+    force: true
+    state: link
+
+- block:
+  - name: ensure '/etc/profile.d' exists
+    file: path="/etc/profile.d" state=directory
+
+  - name: export Maven home
+    template: src=maven.sh.j2 dest=/etc/profile.d/maven.sh mode=a+x
+
+  when: maven_set_maven_home
+
+- name: remove temporary downloaded files, if requested
+  file: path="{{ maven_download_path }}/{{ item }}" state=absent
+  with_items:
+    - "{{ maven_tarball }}"
+  ignore_errors: true
+  when: maven_download_cleanup
