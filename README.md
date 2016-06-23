@@ -12,9 +12,11 @@ Available variables are listed below, along with default values:
 
     maven_version: 3.3.9
 
-    maven_download_path: /tmp
+    maven_download_dir: /tmp
     maven_download_cleanup: true
-    maven_install_path: /opt
+    maven_install_dir: /opt
+
+    maven_set_maven_home: true
 
 ## Dependencies
 

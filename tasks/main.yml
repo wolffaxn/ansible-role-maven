@@ -19,33 +19,33 @@
   include_vars: "versions/{{ maven_version }}.yml"
 
 - name: ensure download directory exists
-  file: path="{{ maven_download_path }}" state=directory
+  file: path="{{ maven_download_dir }}" state=directory
 
-- name: get Maven tarball (tar.gz)
+- name: download Maven binary archive (tar.gz)
   get_url:
-    url: "{{ maven_mirror }}/{{ maven_tarball }}"
+    url: "{{ maven_mirror }}/{{ maven_binary_archive }}"
     checksum: "{{ maven_redis_checksum }}"
-    dest: "{{ maven_download_path }}/{{ maven_tarball }}"
+    dest: "{{ maven_download_dir }}/{{ maven_binary_archive }}"
     owner: root
     group: root
     mode: "u=rwx,go=rx"
   register: maven_redis_get
   until: "'OK' in maven_redis_get.msg or 'file already exists' in maven_redis_get.msg"
-  retries: "{{ download_retries }}"
   delay: "{{ download_delay }}"
+  retries: "{{ download_retries }}"
 
 - name: ensure installation directory exists
   file:
-    path: "{{ maven_install_path }}/apache-maven-{{ maven_version }}"
+    path: "{{ maven_install_dir }}/apache-maven-{{ maven_version }}"
     state: directory
     owner: root
     group: root
     mode: "u=rwx,go=rx"
 
-- name: install Maven tarball (tar.gz)
+- name: install Maven binary archive (tar.gz)
   unarchive:
-    src: "{{ maven_download_path }}/{{ maven_tarball }}"
-    dest: "{{ maven_install_path }}"
+    src: "{{ maven_download_dir }}/{{ maven_binary_archive }}"
+    dest: "{{ maven_install_dir }}"
     owner: root
     group: root
     mode: "go-w"
@@ -53,8 +53,8 @@
 
 - name: create symbolic link
   file:
-    src: "{{ maven_install_path }}/apache-maven-{{ maven_version }}"
-    dest: "{{ maven_install_path }}/maven"
+    src: "{{ maven_install_dir }}/apache-maven-{{ maven_version }}"
+    dest: "{{ maven_install_dir }}/maven"
     force: true
     state: link
 
@@ -62,14 +62,14 @@
   - name: ensure '/etc/profile.d' exists
     file: path="/etc/profile.d" state=directory
 
-  - name: export Maven home
+  - name: export M2_HOME
     template: src=maven.sh.j2 dest=/etc/profile.d/maven.sh mode=a+x
 
   when: maven_set_maven_home
 
 - name: remove temporary downloaded files, if requested
-  file: path="{{ maven_download_path }}/{{ item }}" state=absent
+  file: path="{{ maven_download_dir }}/{{ item }}" state=absent
   with_items:
-    - "{{ maven_tarball }}"
+    - "{{ maven_binary_archive }}"
   ignore_errors: true
   when: maven_download_cleanup
