@@ -1,5 +1,7 @@
 # Ansible Role - Apache Maven
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/wolffaxn/ansible-role-maven/master/LICENSE)
+
 Installs Apache Maven for RedHat/CentOS linux servers.
 
 ## Requirements
